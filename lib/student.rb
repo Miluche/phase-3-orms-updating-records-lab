@@ -3,7 +3,7 @@ require_relative "../config/environment.rb"
 class Student
   attr_accessor :name
   attr_accessor :grade
-  attr_accessor :id
+  attr_reader :id
   def initialize(id=nil, name , grade)
     @id = id
     @name = name
@@ -11,49 +11,59 @@ class Student
   end
 
   def self.create_table
-    sql =  <<-SQL
+    create_sql =  <<-SQL
       CREATE TABLE IF NOT EXISTS students (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
         grade TEXT
       )
     SQL
-    DB[:conn].execute(sql)
+    DB[:conn].execute(create_sql)
   end
 
   def self.drop_table
-    sql = <<-SQL
+    drop_sql = <<-SQL
     DROP TABLE IF EXISTS students
     SQL
-    DB[:conn].execute(sql)
+    DB[:conn].execute(drop_sql)
   end
 
   def save
-    if @id.nil?
-      insert_query = "INSERT INTO students (name, grade) VALUES (?, ?)"
-      DB[:conn].execute(insert_query, [@name, @grade])
+    if self.id
+      self.update
     else
-      insert_query = "INSERT INTO students (id, name, grade) VALUES (?, ?, ?)"
-      DB[:conn].execute(insert_query, [@id, @name, @grade])
+      insert_sql = <<-SQL
+      INSERT INTO students (name, grade) VALUES (?, ?)
+      SQL
+      DB[:conn].execute(insert_sql, self.name, self.grade)
     end
   end
 
   def self.create(name, grade)
-    Student.new(name, grade).save
+    create_ = Student.new(name, grade)
+    create_.save
+    create_
   end
   def self.new_from_db(data)
-    Student.new(data[0], data[1], data[2])
+    new_ = Student.new(data[0], data[1], data[2])
+    new_
   end
   def self.find_by_name(name)
-    select_query = "SELECT * FROM students WHERE name=?"
-    data = []
-    DB[:conn].execute(select_query, name) do |row|
-      data << row
-    end
+    select_sql = <<-SQL
+    SELECT * FROM students WHERE name= ?
+    SQL
+    data = DB[:conn].execute(select_sql, name)[0]
     new_from_db(data)
   end
   def update
-    update_query = query = "UPDATE Students SET name = ?, grade = ? WHERE id = ?"
-    DB[:conn].execute(update_query,@name, @grade, @id)
+    update_sql = <<-SQL
+    UPDATE Students SET name = ?, grade = ? WHERE id = ?
+    SQL
+    DB[:conn].execute(update_sql, self.name, self.grade, self.id)
+  end
+  def ==(other)
+    return false unless other.is_a?(Student)
+
+    name == other.name && grade == other.grade
   end
 end
