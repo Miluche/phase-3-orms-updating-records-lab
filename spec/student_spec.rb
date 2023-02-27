@@ -52,6 +52,7 @@ describe "Student" do
     it 'saves an instance of the Student class to the database and then sets the given students `id` attribute' do
       sarah = Student.new("Sarah", "9th")
       sarah.save
+      # puts DB[:conn].execute("SELECT * FROM students")
       expect(DB[:conn].execute("SELECT * FROM students")).to eq([[1, "Sarah", "9th"]])
       expect(sarah.id).to eq(1)
     end
