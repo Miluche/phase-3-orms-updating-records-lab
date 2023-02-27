@@ -40,20 +40,20 @@ class Student
   end
 
   def self.create(name, grade)
-    create_ = Student.new(name, grade)
-    create_.save
-    create_
+    new_student = Student.new(name, grade)
+    new_student.save
+    new_student
   end
   def self.new_from_db(data)
-    new_ = Student.new(data[0], data[1], data[2])
-    new_
+    new_student = Student.new(data[0], data[1], data[2])
+    new_student
   end
   def self.find_by_name(name)
     select_sql = <<-SQL
     SELECT * FROM students WHERE name= ?
     SQL
     data = DB[:conn].execute(select_sql, name)[0]
-    new_from_db(data)
+    self.new_from_db(data)
   end
   def update
     update_sql = <<-SQL
@@ -64,6 +64,6 @@ class Student
   def ==(other)
     return false unless other.is_a?(Student)
 
-    name == other.name && grade == other.grade
+    self.name == other.name && self.grade == other.grade
   end
 end
